@@ -16,24 +16,44 @@ export default async function handler(request, response) {
 
         const spreadsheetId = process.env.SHEET_ID;
 
-        const nomeAba = "Página1";
+        const abaPrincipal = "Trabalho";
+        const abasDisciplinas = [
+            'Planejamento HID',
+            'Planejamento TER',
+            'Planejamento EST',
+            'Planejamento ELE',
+            'Planejamento PCI/AVAC',
+            'Planejamento ORÇ'
+        ]
 
-        const range = `${nomeAba}!A1:Z`; 
+        const ranges = [`${abaPrincipal}!A1:Z`];
+        abasDisciplinas.forEach(aba => {
+            ranges.push(`${aba}!A2:Z`);
+        });
 
-        console.log(`[LOG DA API] Tentando buscar... ID: ${spreadsheetId}, Aba: ${nomeAba}`);
+        console.log(`[LOG DA API] Tentando buscar... ID: ${spreadsheetId}, Aba: ${abaPrincipal}`);
 
         const sheets = google.sheets({ version: 'v4', auth: auth }); 
 
-        const sheetData = await sheets.spreadsheets.values.get({
+        const result = await sheets.spreadsheets.values.batchGet({
             spreadsheetId,
-            range
-        });
+            ranges: ranges
+        })
+
+        const allSheetData = result.data.valueRanges;
+
+        const responseData = {
+            mainSheet: allSheetData[0].values,
+            disciplineSheets: allSheetData.slice(1).reduce((acc, sheet) => {
+                const sheetName = sheet.range.split('!')[0]
+                acc[sheetName] = sheet.values
+                return acc
+            }, {})
+        }
 
         console.log('[LOG DO BACKEND] Resposta da API do Google recebida com SUCESSO.');
 
-        response.status(200).json({
-            data: sheetData.data.values,
-        });
+        response.status(200).json(responseData)
 
     } catch (error) {
         console.error('### ERRO NO CATCH DO BACKEND ###', error);
