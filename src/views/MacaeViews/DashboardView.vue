@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 import DonutChart from '@/components/DonutChart.vue';
 import StackedBarChart from '@/components/StackedBarChart.vue';
+import BarChart from '@/components/BarChart.vue';
 
 
 const mainSheetData = ref([])
@@ -44,7 +45,7 @@ const donutChartData = computed(() => {
         datasets: [
             {
                 label: 'Alocação',
-                backgroundColor: ['#2a95ff', '#ff3c3c', '#a7a7a7'],
+                backgroundColor: ['#ff3c3c', '#2a95ff', '#a7a7a7'],
                 data: data
             }
         ]
@@ -60,7 +61,7 @@ const donutChartOptions = ref({
             labels: {
                 color: '#000',
                 font: {
-                    family: 'Poppins, sans-serif',
+                    family: 'DM Sans, sans-serif',
                     size: 14,
                 },
             },
@@ -116,10 +117,10 @@ const stackedBarChartData = computed(() => {
     }
 
     const situacoes = {
-        'Problema': { color: '#d9534f', data: [] },
+        'Problema': { color: '#f80224', data: [] },
         'Pior que o esperado': { color: '#f0ad4e', data: [] },
-        'Dentro do Esperado': { color: '#02b875', data: [] },
-        'Melhor que o esperado': { color: '#5bc0de', data: [] }
+        'Dentro do Esperado': { color: '#5bc0de', data: [] },
+        'Melhor que o esperado': { color: '#02b875', data: [] }
     };
 
     const labels = Object.keys(data);
@@ -223,7 +224,7 @@ const stackedBarChartOptions = ref({
                 },
             },
             grid: {
-                color: 'rgba(255, 255, 255, 0.1)',
+                color: '#a7a7a7',
             },
         },
         y: {
@@ -241,6 +242,142 @@ const stackedBarChartOptions = ref({
     },
 });
 
+const delayedTasksChartData = computed(() => {
+    const data = disciplineSheetsData.value;
+    if (!data || Object.keys(data).length === 0) return null;
+
+    const colors = {
+        'EST': '#f80224',
+        'HID': '#0076d8',
+        'ELE': '#fdb300',
+        'PCI/AVAC': '#c5c5c5',
+        'TER': '#702121',
+        'ORÇ': '#1ab800',
+    };
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const parseDate = (dateStr) => {
+        if (!dateStr || typeof dateStr !== 'string') return null;
+        const parts = dateStr.split('/');
+        if (parts.length !== 3) return null;
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+    };
+
+    const fullLabels = Object.keys(data);
+    const counts = [];
+
+    const siglaLabels = fullLabels.map(name => {
+        const parts = name.split(' ');
+        let sigla = parts.length > 1 ? parts.pop() : name;
+        return sigla.replace(/'$/, '');
+    });
+
+    fullLabels.forEach(disciplinaFullName => {
+        const sheet = data[disciplinaFullName];
+        if (!sheet || sheet.length < 2) {
+            counts.push(0);
+            return;
+        }
+
+        const headers = sheet[0];
+        const colIndex = headers.indexOf('🤖 Data de Entrega Contratual');
+
+        if (colIndex === -1) {
+            console.warn(`Coluna '🤖 Data de Entrega Contratual' não encontrada em ${disciplinaFullName}`);
+            counts.push(0);
+            return;
+        }
+
+        let atrasosCount = 0;
+        sheet.slice(1).forEach(row => {
+            const dateStr = row[colIndex];
+            const taskDate = parseDate(dateStr);
+
+            if (taskDate && taskDate < today) {
+                atrasosCount++;
+            }
+        });
+        counts.push(atrasosCount);
+    });
+
+    const datasets = siglaLabels.map((label, index) => {
+        const dataForThisLabel = new Array(siglaLabels.length).fill(0);
+        dataForThisLabel[index] = counts[index];
+
+        return {
+            label: label,
+            data: dataForThisLabel,
+            backgroundColor: colors[label] || '#999999',
+        };
+    });
+
+    return {
+        labels: siglaLabels,
+        datasets: datasets
+    };
+});
+
+const delayedTasksChartOptions = ref({
+    responsive: true,
+    maintainAspectRatio: false,
+    color: '#FFFFFF',
+
+    plugins: {
+        title: {
+            display: true,
+            text: 'Atividades com Atraso',
+            font: { family: 'DM Sans', size: 18 },
+            color: '#000'
+        },
+        legend: {
+            position: 'top',
+            labels: {
+                font: {
+                    family: 'DM Sans',
+                },
+                color: '#black'
+            }
+        },
+        datalabels: {
+            display: true,
+            color: 'white',
+            anchor: 'end',
+            align: 'top',
+            offset: -5,
+            font: {
+                family: 'DM Sans',
+                weight: 'bold'
+            },
+            color: '#000',
+            formatter: (value) => {
+                return value > 0 ? value : null;
+            }
+        }
+    },
+    scales: {
+        x: {
+            stacked: false,
+            ticks: {
+                color: '#000'
+            }
+        },
+        y: {
+            stacked: false,
+            beginAtZero: true,
+            title: {
+                display: true,
+                text: 'Atividades Atrasadas',
+                color: '#000'
+            },
+            ticks: {
+                precision: 0,
+                color: '#000'
+            }
+        }
+    }
+});
 
 async function fetchData() {
     loading.value = true;
@@ -265,12 +402,6 @@ onMounted(() => {
 </script>
 
 <template>
-    <header>
-        <nav>
-            <img src="" alt="">
-        </nav>
-    </header>
-
     <div class="dashboard">
         <h1>Controle Engenharias</h1>
 
@@ -285,6 +416,10 @@ onMounted(() => {
 
                 <div class="chart-container" v-if="stackedBarChartData">
                     <StackedBarChart :chartData="stackedBarChartData" :chartOptions="stackedBarChartOptions" />
+                </div>
+
+                <div class="chart-container" v-if="delayedTasksChartData">
+                    <BarChart :chartData="delayedTasksChartData" :chartOptions="delayedTasksChartOptions" />
                 </div>
             </div>
 
@@ -312,6 +447,13 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 1800px;
+}
+
 h1 {
     color: black;
     font-weight: bold;
@@ -321,13 +463,12 @@ h1 {
 .charts-wrapper {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-around;
-    width: 1200px;
+    width: 900px;
 }
 
 .chart-container {
-    width: 250px;
-    height: 350px;
+    width: 350x;
+    height: 400px;
     margin: 10px;
     padding: 10px;
     border: 4px solid #f0f0f0;
