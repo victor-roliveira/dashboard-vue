@@ -200,6 +200,7 @@ h2 {
 .problem-table-container {
     width: 1800px;
     margin-top: 40px;
+    margin-bottom: 40px;
     color: #eee;
 }
 
@@ -248,10 +249,8 @@ table {
     border-collapse: collapse;
 }
 
-th,
 td {
-    border: 1px solid #555;
-    padding: 10px 12px;
+    border: 2px solid #e1e1e1;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;

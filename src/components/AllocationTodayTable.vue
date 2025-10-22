@@ -62,8 +62,8 @@ const processedData = computed(() => {
 
 function getCellStyle(text) {
     if (text === 'HomeOffice') return { backgroundColor: '#d9d2e9', color: '#333' };
-    if (text === 'Marica') return { backgroundColor: '#fce5cd', color: '#333' };
-    if (text === 'Macae') return { backgroundColor: '#d9ead3', color: '#333' };
+    if (text === 'Maricá') return { backgroundColor: '#ff8282', color: '#000' };
+    if (text === 'Macaé') return { backgroundColor: '#6698ff', color: '#000' };
     return {};
 }
 </script>
@@ -119,59 +119,26 @@ table {
     border-collapse: collapse;
 }
 
-th,
+
 td {
-    border: 1px solid #555;
-    padding: 10px 12px;
+    border: 2px solid #e1e1e1;
+    padding: 2px 3px;
     text-align: center;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.col-link {
-    width: 130px;
-}
-
-.col-small {
-    width: 120px;
-}
-
-.col-medium {
-    width: 180px;
-}
-
-.col-large {
-    width: 350px;
+    color: black;
 }
 
 th {
     background-color: orangered;
+    padding: 10px;
     color: white;
+    font-weight: 600;
     position: relative;
     position: sticky;
     top: 0;
     z-index: 1;
     text-align: center;
-}
-
-tbody tr:nth-child(even) {
-    background-color: transparent;
-    color: black;
-}
-
-tbody tr:nth-child(odd) {
-    background-color: transparent;
-    color: black;
-}
-
-td a {
-    color: blue;
-    text-decoration: underline;
-    font-weight: bold;
-}
-
-td a:hover {
-    color: rgb(0, 0, 205);
 }
 </style>
