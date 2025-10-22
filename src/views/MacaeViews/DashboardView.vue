@@ -4,12 +4,17 @@ import axios from 'axios';
 import DonutChart from '@/components/DonutChart.vue';
 import StackedBarChart from '@/components/StackedBarChart.vue';
 import BarChart from '@/components/BarChart.vue';
+import SituationsActvitiesTable from '@/components/SituationsActvitiesTable.vue';
+import AllocationTodayTable from '@/components/AllocationTodayTable.vue';
 
 
 const mainSheetData = ref([])
 const disciplineSheetsData = ref([])
+const colaboradoresData = ref(null)
 const loading = ref(true);
 const error = ref(null);
+const sheetId = ref(null);
+const gidMap = ref(null);
 
 const donutChartData = computed(() => {
     if (!mainSheetData.value || mainSheetData.value.length < 3) {
@@ -387,6 +392,9 @@ async function fetchData() {
 
         mainSheetData.value = response.data.mainSheet;
         disciplineSheetsData.value = response.data.disciplineSheets;
+        sheetId.value = response.data.sheetId;
+        gidMap.value = response.data.gidMap;
+        colaboradoresData.value = response.data.colaboradoresData;
 
     } catch (err) {
         console.error(err);
@@ -403,13 +411,20 @@ onMounted(() => {
 
 <template>
     <div class="dashboard">
-        <h1>Controle Engenharias</h1>
+        <h1>Controle Engenharia</h1>
 
-        <div v-if="loading" class="loading">Carregando dados...</div>
-        <div v-else-if="error" class="error">{{ error }}</div>
+        <div v-if="loading" class="loading">
+            Carregando dados...
+        </div>
+
+        <div v-else-if="error" class="error">
+            {{ error }}
+        </div>
 
         <div v-else>
+
             <div class="charts-wrapper">
+
                 <div class="chart-container" v-if="donutChartData">
                     <DonutChart :chartData="donutChartData" :chartOptions="donutChartOptions" />
                 </div>
@@ -421,27 +436,23 @@ onMounted(() => {
                 <div class="chart-container" v-if="delayedTasksChartData">
                     <BarChart :chartData="delayedTasksChartData" :chartOptions="delayedTasksChartOptions" />
                 </div>
+
             </div>
 
-            <!--<div v-if="mainSheetData && mainSheetData.length > 0" class="table-container">
-                <h2>Dados da Planilha</h2>
-                <table>
-                    <thead>
-                        <tr>
-                            <th v-for="(header, index) in mainSheetData[1]" :key="index">
-                                {{ header }}
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr v-for="(row, rowIndex) in mainSheetData.slice(3)" :key="rowIndex">
-                            <td v-for="(cell, cellIndex) in row" :key="cellIndex">
-                                {{ cell }}
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>-->
+            <div class="problem-table-section" v-if="sheetId && gidMap">
+                <SituationsActvitiesTable :sheet-id="sheetId" :gid-map="gidMap"
+                    :discipline-data="disciplineSheetsData" />
+            </div>
+
+            <div class="allocation-today-section" v-if="colaboradoresData">
+                <AllocationTodayTable :colaboradores-data="colaboradoresData" />
+            </div>
+
+            <div v-if="mainSheetData && mainSheetData.length > 0" class="table-container">
+            </div>
+
+            <div class="problem-table-section" v-if="sheetId && gidMap">
+            </div>
         </div>
     </div>
 </template>
@@ -463,7 +474,7 @@ h1 {
 .charts-wrapper {
     display: flex;
     flex-wrap: wrap;
-    width: 900px;
+    width: 1800px;
 }
 
 .chart-container {
