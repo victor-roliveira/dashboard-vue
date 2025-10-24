@@ -419,7 +419,7 @@ const delayedTasksChartOptions = ref({
                 Controle Engenharia
             </h1>
             <v-progress-circular indeterminate color="orange" size="64"></v-progress-circular>
-            <div class="text-h6 mt-4" style="color: white;">Carregando dados...</div>
+            <p class="text-h6 mt-4" style="color: white;">Carregando dados...</p>
         </v-overlay>
 
         <div v-if="!loading">
@@ -475,6 +475,10 @@ const delayedTasksChartOptions = ref({
 
 <style scoped>
 h1 {
+    font-family: 'DM Sans';
+}
+
+p {
     font-family: 'DM Sans';
 }
 
