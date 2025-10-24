@@ -198,10 +198,10 @@ h2 {
 }
 
 .problem-table-container {
-    width: 1800px;
+    width: 98%;
     margin-top: 40px;
     margin-bottom: 40px;
-    color: #eee;
+    color: #fff;
 }
 
 .filters {
@@ -262,19 +262,19 @@ td {
 }
 
 .col-small {
-    width: 120px;
+    width: 90px;
 }
 
 .col-medium {
-    width: 180px;
+    width: 120px;
 }
 
 .col-large {
-    width: 350px;
+    width: 250px;
 }
 
 th {
-    background-color: orangered;
+    background-color: orange;
     position: relative;
     position: sticky;
     top: 0;
@@ -301,4 +301,5 @@ td a {
 td a:hover {
     color: rgb(0, 0, 205);
 }
+
 </style>

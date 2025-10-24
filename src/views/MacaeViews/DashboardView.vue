@@ -1,20 +1,31 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
-import axios from 'axios';
+import { storeToRefs } from 'pinia';
+import { useDataStore } from '@/stores/dataStore';
+
 import DonutChart from '@/components/DonutChart.vue';
 import StackedBarChart from '@/components/StackedBarChart.vue';
 import BarChart from '@/components/BarChart.vue';
 import SituationsActvitiesTable from '@/components/SituationsActvitiesTable.vue';
 import AllocationTodayTable from '@/components/AllocationTodayTable.vue';
 
+// ...toda a sua lógica de 'computed', 'onMounted', etc., continua aqui...
+// ...NENHUMA MUDANÇA NECESSÁRIA NO SCRIPT...
+const dataStore = useDataStore()
 
-const mainSheetData = ref([])
-const disciplineSheetsData = ref([])
-const colaboradoresData = ref(null)
-const loading = ref(true);
-const error = ref(null);
-const sheetId = ref(null);
-const gidMap = ref(null);
+const {
+    loading,
+    error,
+    mainSheetData,
+    disciplineSheetsData,
+    sheetId,
+    gidMap,
+    colaboradoresData
+} = storeToRefs(dataStore)
+
+onMounted(() => {
+    dataStore.fetchData()
+});
 
 const donutChartData = computed(() => {
     if (!mainSheetData.value || mainSheetData.value.length < 3) {
@@ -252,7 +263,7 @@ const delayedTasksChartData = computed(() => {
     if (!data || Object.keys(data).length === 0) return null;
 
     const colors = {
-        'EST': '#f80224',
+        'EST': '#5300a1',
         'HID': '#0076d8',
         'ELE': '#fdb300',
         'PCI/AVAC': '#c5c5c5',
@@ -365,7 +376,12 @@ const delayedTasksChartOptions = ref({
         x: {
             stacked: false,
             ticks: {
-                color: '#000'
+                color: '#000',
+                font: {
+                    family: 'DM Sans',
+                    size: 14,
+                    weight: '500'
+                }
             }
         },
         y: {
@@ -374,145 +390,95 @@ const delayedTasksChartOptions = ref({
             title: {
                 display: true,
                 text: 'Atividades Atrasadas',
-                color: '#000'
+                color: '#000',
+                font: {
+                    family: 'DM Sans',
+                    size: 14,
+                    weight: '600'
+                }
             },
             ticks: {
                 precision: 0,
-                color: '#000'
+                color: '#000',
+                font: {
+                    family: 'DM Sans',
+                    size: 13,
+                    weight: '500'
+                }
             }
         }
     }
 });
-
-async function fetchData() {
-    loading.value = true;
-    error.value = null;
-    try {
-        const response = await axios.get('/api/getSheetData');
-
-        mainSheetData.value = response.data.mainSheet;
-        disciplineSheetsData.value = response.data.disciplineSheets;
-        sheetId.value = response.data.sheetId;
-        gidMap.value = response.data.gidMap;
-        colaboradoresData.value = response.data.colaboradoresData;
-
-    } catch (err) {
-        console.error(err);
-        error.value = 'Não foi possível carregar os dados.';
-    } finally {
-        loading.value = false;
-    }
-}
-
-onMounted(() => {
-    fetchData();
-});
 </script>
 
 <template>
-    <div class="dashboard">
-        <h1>Controle Engenharia</h1>
+    <v-container fluid>
 
-        <div v-if="loading" class="loading">
-            Carregando dados...
+        <v-overlay :model-value="loading" persistent class="d-flex flex-column justify-center align-center">
+            <h1 class="text-h4 font-weight-bold mb-6" style="color: white;">
+                Controle Engenharia
+            </h1>
+            <v-progress-circular indeterminate color="orange" size="64"></v-progress-circular>
+            <div class="text-h6 mt-4" style="color: white;">Carregando dados...</div>
+        </v-overlay>
+
+        <div v-if="!loading">
+
+            <v-row v-if="error" align="center" justify="center">
+                <v-col cols="12" md="10">
+                    <v-alert type="error" variant="tonal" border="start" prominent class="my-4">
+                        {{ error }}
+                    </v-alert>
+                </v-col>
+            </v-row>
+
+            <div v-else>
+                <h1 class="text-h4 font-weight-bold text-center my-">
+                    Controle Engenharia
+                </h1>
+
+                <v-row class="mb-4">
+                    <v-col v-if="donutChartData" cols="12" md="6" lg="4">
+                        <v-card class="chart-card pa-4" flat>
+                            <DonutChart :chartData="donutChartData" :chartOptions="donutChartOptions" />
+                        </v-card>
+                    </v-col>
+                    <v-col v-if="stackedBarChartData" cols="12" md="6" lg="4">
+                        <v-card class="chart-card pa-4" flat>
+                            <StackedBarChart :chartData="stackedBarChartData" :chartOptions="stackedBarChartOptions" />
+                        </v-card>
+                    </v-col>
+                    <v-col v-if="delayedTasksChartData" cols="12" md="6" lg="4">
+                        <v-card class="chart-card pa-4" flat>
+                            <BarChart :chartData="delayedTasksChartData" :chartOptions="delayedTasksChartOptions" />
+                        </v-card>
+                    </v-col> </v-row>
+
+                <v-row>
+                    <v-col v-if="sheetId && gidMap" cols="12">
+                        <v-card flat>
+                            <SituationsActvitiesTable :sheet-id="sheetId" :gid-map="gidMap"
+                                :discipline-data="disciplineSheetsData" />
+                        </v-card>
+                    </v-col>
+                    <v-col v-if="colaboradoresData" cols="12">
+                        <v-card flat>
+                            <AllocationTodayTable :colaboradores-data="colaboradoresData" />
+                        </v-card>
+                    </v-col>
+                </v-row>
+            </div>
         </div>
 
-        <div v-else-if="error" class="error">
-            {{ error }}
-        </div>
-
-        <div v-else>
-
-            <div class="charts-wrapper">
-
-                <div class="chart-container" v-if="donutChartData">
-                    <DonutChart :chartData="donutChartData" :chartOptions="donutChartOptions" />
-                </div>
-
-                <div class="chart-container" v-if="stackedBarChartData">
-                    <StackedBarChart :chartData="stackedBarChartData" :chartOptions="stackedBarChartOptions" />
-                </div>
-
-                <div class="chart-container" v-if="delayedTasksChartData">
-                    <BarChart :chartData="delayedTasksChartData" :chartOptions="delayedTasksChartOptions" />
-                </div>
-
-            </div>
-
-            <div class="problem-table-section" v-if="sheetId && gidMap">
-                <SituationsActvitiesTable :sheet-id="sheetId" :gid-map="gidMap"
-                    :discipline-data="disciplineSheetsData" />
-            </div>
-
-            <div class="allocation-today-section" v-if="colaboradoresData">
-                <AllocationTodayTable :colaboradores-data="colaboradoresData" />
-            </div>
-
-            <div v-if="mainSheetData && mainSheetData.length > 0" class="table-container">
-            </div>
-
-            <div class="problem-table-section" v-if="sheetId && gidMap">
-            </div>
-        </div>
-    </div>
+    </v-container>
 </template>
 
 <style scoped>
-.dashboard {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 1800px;
-}
-
 h1 {
-    color: black;
-    font-weight: bold;
-    font-size: 42px;
+    font-family: 'DM Sans';
 }
 
-.charts-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    width: 1800px;
-}
-
-.chart-container {
-    width: 350x;
+.chart-card {
     height: 400px;
-    margin: 10px;
-    padding: 10px;
-    border: 4px solid #f0f0f0;
-    border-radius: 8px;
-    flex: 1;
-}
-
-.table-container {
-    width: 100%;
-    overflow-x: auto;
-    margin-top: 30px;
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-th,
-td {
-    border: 1px solid #ddd;
-    padding: 8px;
-    color: #eee;
-}
-
-th {
-    background-color: #f4f4f4;
-    color: #222;
-}
-
-.loading,
-.error {
-    color: red;
-    font-weight: bold;
 }
 </style>

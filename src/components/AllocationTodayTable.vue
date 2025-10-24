@@ -105,9 +105,9 @@ h2 {
 }
 
 .table-wrapper {
-    width: 100%;
+    width: 98%;
     overflow-x: auto;
-    max-height: 500px;
+    max-height: 450px;
     overflow-y: auto;
     margin-bottom: 50px;
 }
@@ -131,7 +131,7 @@ td {
 }
 
 th {
-    background-color: orangered;
+    background-color: orange;
     padding: 10px;
     color: white;
     font-weight: 600;

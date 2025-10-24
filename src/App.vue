@@ -1,71 +1,40 @@
-<script setup lang="ts">
+<script setup>
 import { RouterView } from 'vue-router'
 </script>
 
 <template>
-  <RouterView />
+  <v-app>
+    <v-app-bar color="orange" density="compact">
+      <v-tabs
+        bg-color="transparent"
+        slider-color="black"
+      >
+        <v-tab to="/controle-engenharia">
+          Controle Engenharia
+        </v-tab>
+        <v-tab to="/alocacoes">
+          Alocações
+        </v-tab>
+      </v-tabs>
+    </v-app-bar>
+
+    <v-main>
+      <v-container fluid>
+        <RouterView />
+      </v-container>
+    </v-main>
+  </v-app>
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+.v-tab {
+  text-transform: none;
+  font-size: 16px; 
+  color: #fff;
+  font-weight: 800;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
-}
-
-nav a.router-link-exact-active {
-  color: var(--color-text);
-}
-
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+.v-tab.v-tab--selected {
+  color: #000; 
 }
 </style>
